@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GymTracker">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="manifest" href="manifest.json">
+<title>Gym Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --bg2: #111111;
+  --bg3: #1a1a1a;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0ece4;
+  --text2: #888070;
+  --text3: #4a4640;
+  --red: #c94a2a;
+  --orange: #d97a35;
+  --blue: #3a7fd4;
+  --green: #4a9456;
+  --warn: #d9873a;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  overscroll-behavior: none;
+}
+
+/* LAYOUT */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+.header {
+  padding: calc(var(--safe-top) + 14px) 20px 14px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  background: var(--bg);
+}
+.header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+.header-title span { color: var(--red); }
+.header-sub {
+  font-size: 11px;
+  color: var(--text2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: right;
+  line-height: 1.4;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 0 16px;
+}
+
+/* TAB BAR */
+.tab-bar {
+  display: flex;
+  border-top: 0.5px solid var(--border);
+  flex-shrink: 0;
+  padding-bottom: var(--safe-bottom);
+  background: var(--bg);
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 4px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 10px;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.04em;
+  transition: color 0.15s;
+}
+.tab-item.active { color: var(--red); }
+.tab-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* PANELS */
+.panel { display: none; padding: 16px 16px 0; }
+.panel.active { display: block; }
+
+/* SECTION LABEL */
+.sec {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  margin: 0 0 8px;
+}
+
+/* CARD */
+.card {
+  background: var(--bg2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+/* WEEK GRID */
+.week-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-bottom: 14px;
+}
+.dc {
+  background: var(--bg2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 2px;
+  text-align: center;
+}
+.dc.train { border-color: rgba(201,74,42,0.5); background: rgba(201,74,42,0.08); }
+.dc.today { border-width: 1.5px; border-color: var(--red); }
+.dn { font-size: 10px; color: var(--text2); margin-bottom: 5px; }
+.dc.train .dn { color: #e07060; }
+.dot { width: 5px; height: 5px; border-radius: 50%; margin: 0 auto; }
+.dot.t { background: var(--red); }
+.dot.r { background: var(--border2); }
+
+/* STATS GRID */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.sc { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px; }
+.sl { font-size: 10px; color: var(--text2); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.06em; }
+.sv { font-size: 26px; font-weight: 500; color: var(--text); line-height: 1; }
+.ss { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* ROUND ROWS */
+.round-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 0;
+  border-bottom: 0.5px solid var(--border);
+  flex-wrap: wrap;
+}
+.round-row:last-child { border-bottom: none; }
+.rn { font-size: 11px; color: var(--text3); min-width: 14px; }
+.chip {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.c-pull { background: rgba(58,127,212,0.18); color: #7ab0e8; }
+.c-dip  { background: rgba(74,148,86,0.18);  color: #7ec28a; }
+.c-push { background: rgba(217,122,53,0.18); color: #e0a060; }
+.arr { font-size: 10px; color: var(--text3); }
+
+/* PHASE TABLE */
+.pt { width: 100%; border-collapse: collapse; font-size: 12px; }
+.pt th { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; padding: 5px 6px; border-bottom: 0.5px solid var(--border); text-align: left; }
+.pt td { padding: 8px 6px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+.pt tr:last-child td { border-bottom: none; }
+.pv { font-weight: 500; color: var(--text); }
+.pm { color: var(--text2); font-size: 11px; }
+.db { font-size: 10px; background: rgba(217,135,58,0.2); color: var(--warn); padding: 2px 5px; border-radius: 4px; margin-left: 3px; }
+
+/* PROGRESS BARS */
+.prog-row { margin-bottom: 10px; }
+.prog-top { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+.prog-name { color: var(--text); font-weight: 500; }
+.prog-nums { color: var(--text2); }
+.prog-bg { background: var(--bg3); border-radius: 4px; height: 6px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 4px; }
+
+/* TRACKER INPUTS */
+.ex-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.ex-row:last-of-type { border-bottom: none; }
+.ex-lbl { font-size: 13px; font-weight: 500; min-width: 72px; }
+.pill { font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 500; }
+.p-pull { background: rgba(58,127,212,0.18); color: #7ab0e8; }
+.p-dip  { background: rgba(74,148,86,0.18);  color: #7ec28a; }
+.p-push { background: rgba(217,122,53,0.18); color: #e0a060; }
+.cw { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.cbtn {
+  width: 36px; height: 36px;
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border2);
+  background: var(--bg3);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+}
+.cbtn:active { transform: scale(0.92); background: var(--bg2); }
+.cval { font-size: 22px; font-weight: 500; min-width: 36px; text-align: center; color: var(--text); }
+.ctgt { font-size: 11px; color: var(--text3); min-width: 28px; }
+.sets-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 0 6px 72px;
+  flex-wrap: wrap;
+}
+.sc2 { font-size: 11px; padding: 3px 9px; border-radius: 20px; background: var(--bg3); color: var(--text2); cursor: pointer; border: 0.5px solid var(--border); }
+.sc2:active { background: var(--bg2); }
+
+/* WEEK SELECTOR */
+.week-sel-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.week-sel-row label { font-size: 13px; color: var(--text2); }
+.week-sel-row select {
+  flex: 1;
+  font-size: 13px;
+  background: var(--bg2);
+  color: var(--text);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* SAVE BUTTON */
+.save-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: var(--radius-lg);
+  border: none;
+  background: var(--red);
+  color: #fff;
+  cursor: pointer;
+  margin-bottom: 14px;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.02em;
+}
+.save-btn:active { opacity: 0.82; transform: scale(0.98); }
+
+/* HISTORY */
+.hist-item { border-bottom: 0.5px solid var(--border); padding: 10px 0; }
+.hist-item:last-child { border-bottom: none; }
+.hist-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.hist-date { font-size: 13px; font-weight: 500; color: var(--text); }
+.hist-wk { font-size: 11px; color: var(--text3); margin-left: 6px; }
+.hist-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+.del-btn { font-size: 13px; color: #a33030; background: none; border: none; cursor: pointer; padding: 4px; }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  top: calc(var(--safe-top) + 60px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 18px;
+  border-radius: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  white-space: nowrap;
+  z-index: 999;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* TIMER */
+.timer-wrap { text-align: center; margin-bottom: 14px; }
+.timer-phase { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--text2); margin-bottom: 10px; }
+.timer-ring-wrap { position: relative; width: 180px; height: 180px; margin: 0 auto 16px; }
+.timer-svg { width: 180px; height: 180px; transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: var(--bg3); stroke-width: 8; }
+.ring-fg { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.95s linear, stroke 0.3s; }
+.timer-num {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 56px;
+  color: var(--text);
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+.timer-sublabel {
+  position: absolute; bottom: 22px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px; color: var(--text2); white-space: nowrap;
+}
+.timer-btn-row { display: flex; gap: 10px; justify-content: center; }
+.tbtn {
+  padding: 12px 22px;
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--border2);
+  background: var(--bg2);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+}
+.tbtn:active { transform: scale(0.96); }
+.tbtn.primary { background: var(--red); border-color: var(--red); color: #fff; }
+
+.timer-alert {
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 12px;
+  display: none;
+}
+.timer-alert.warn { background: rgba(217,135,58,0.15); color: var(--warn); border: 0.5px solid rgba(217,135,58,0.3); display: block; }
+.timer-alert.go  { background: rgba(74,148,86,0.15);  color: var(--green); border: 0.5px solid rgba(74,148,86,0.3);  display: block; }
+
+.tip-row {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.5;
+  padding: 6px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.tip-row:last-child { border-bottom: none; }
+.tip-label { color: var(--text); font-weight: 500; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="app">
+  <div class="header">
+    <div class="header-title">Gym<span>.</span>Tracker</div>
+    <div class="header-sub">Ma · Wo · Za<br>10 weken plan</div>
+  </div>
+
+  <div class="content" id="content">
+
+    <!-- SCHEMA -->
+    <div class="panel active" id="tab-schema">
+      <div style="height:16px"></div>
+      <div class="sec">Trainingsweek</div>
+      <div class="week-row" id="week-row"></div>
+
+      <div class="sec">Sessievolgorde (~35–40 min)</div>
+      <div class="card" id="rounds"></div>
+
+      <div class="stat-grid">
+        <div class="sc"><div class="sl">Pullups</div><div class="sv">50</div><div class="ss">~8 × 6 per sessie</div></div>
+        <div class="sc"><div class="sl">Dips</div><div class="sv">25</div><div class="ss">opbouwen</div></div>
+        <div class="sc"><div class="sl">Pushups</div><div class="sv">100</div><div class="ss">~10 × 10 per sessie</div></div>
+        <div class="sc"><div class="sl">Rust</div><div class="sv">90s</div><div class="ss">tussen sets</div></div>
+      </div>
+
+      <div class="sec">Tips</div>
+      <div class="card">
+        <div class="tip-row"><span class="tip-label">Volgorde</span><span>Pullups altijd eerst — meeste kracht vereist</span></div>
+        <div class="tip-row"><span class="tip-label">Techniek</span><span>Schouderbladen intrekken bij pullup, plank bij pushup</span></div>
+        <div class="tip-row"><span class="tip-label">Deload</span><span>Week 5 op 70% volume — heilig voor herstel</span></div>
+        <div class="tip-row"><span class="tip-label">Eiwit</span><span>Min. 1.8g per kg lichaamsgewicht per dag</span></div>
+      </div>
+    </div>
+
+    <!-- PLAN -->
+    <div class="panel" id="tab-plan">
+      <div style="height:16px"></div>
+      <div class="sec">10-weken opbouwplan</div>
+      <div class="card" style="padding:10px;">
+        <table class="pt">
+          <thead><tr><th>Weken</th><th>Pull</th><th>Dip</th><th>Push</th><th>Focus</th></tr></thead>
+          <tbody id="phase-body"></tbody>
+        </table>
+      </div>
+
+      <div class="sec">Progressie huidig → doel</div>
+      <div class="card" id="prog-bars"></div>
+    </div>
+
+    <!-- TRACKER + TIMER COMBINED -->
+    <div class="panel" id="tab-tracker">
+      <div style="height:16px"></div>
+
+      <div class="sec">Sessie loggen</div>
+      <div class="week-sel-row">
+        <label>Week</label>
+        <select id="wk-sel"></select>
+      </div>
+      <div class="card">
+        <div class="ex-row">
+          <span class="ex-lbl"><span class="pill p-pull">Pullups</span></span>
+          <div class="cw">
+            <button class="cbtn" onclick="ch('pull',-1)" aria-label="min">−</button>
+            <span class="cval" id="v-pull">0</span>
+            <button class="cbtn" onclick="ch('pull',1)" aria-label="plus">+</button>
+            <span class="ctgt">/ 50</span>
+          </div>
+        </div>
+        <div class="sets-row">
+          <span style="font-size:11px;color:var(--text3);">set:</span>
+          <span class="sc2" onclick="addS('pull',6)">+6</span>
+          <span class="sc2" onclick="addS('pull',7)">+7</span>
+          <span class="sc2" onclick="addS('pull',8)">+8</span>
+          <span class="sc2" onclick="addS('pull',10)">+10</span>
+        </div>
+        <div class="ex-row">
+          <span class="ex-lbl"><span class="pill p-dip">Dips</span></span>
+          <div class="cw">
+            <button class="cbtn" onclick="ch('dip',-1)" aria-label="min">−</button>
+            <span class="cval" id="v-dip">0</span>
+            <button class="cbtn" onclick="ch('dip',1)" aria-label="plus">+</button>
+            <span class="ctgt">/ 25</span>
+          </div>
+        </div>
+        <div class="sets-row">
+          <span style="font-size:11px;color:var(--text3);">set:</span>
+          <span class="sc2" onclick="addS('dip',3)">+3</span>
+          <span class="sc2" onclick="addS('dip',4)">+4</span>
+          <span class="sc2" onclick="addS('dip',5)">+5</span>
+          <span class="sc2" onclick="addS('dip',8)">+8</span>
+        </div>
+        <div class="ex-row">
+          <span class="ex-lbl"><span class="pill p-push">Pushups</span></span>
+          <div class="cw">
+            <button class="cbtn" onclick="ch('push',-1)" aria-label="min">−</button>
+            <span class="cval" id="v-push">0</span>
+            <button class="cbtn" onclick="ch('push',1)" aria-label="plus">+</button>
+            <span class="ctgt">/ 100</span>
+          </div>
+        </div>
+        <div class="sets-row">
+          <span style="font-size:11px;color:var(--text3);">set:</span>
+          <span class="sc2" onclick="addS('push',10)">+10</span>
+          <span class="sc2" onclick="addS('push',12)">+12</span>
+          <span class="sc2" onclick="addS('push',15)">+15</span>
+          <span class="sc2" onclick="addS('push',20)">+20</span>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveSession()">Sessie opslaan</button>
+
+      <!-- TIMER ERONDER -->
+      <div class="sec">Rusttimer — tik om te starten</div>
+      <div class="timer-alert" id="timer-alert"></div>
+      <div class="card timer-wrap" onclick="timerToggle()" style="cursor:pointer;" role="button" aria-label="Timer">
+        <div class="timer-phase" id="timer-phase">Tik om rust te starten</div>
+        <div class="timer-ring-wrap">
+          <svg class="timer-svg" viewBox="0 0 180 180" aria-hidden="true">
+            <circle class="ring-bg" cx="90" cy="90" r="78"/>
+            <circle class="ring-fg" id="ring" cx="90" cy="90" r="78"
+              stroke-dasharray="490" stroke-dashoffset="0" stroke="#3a7fd4"/>
+          </svg>
+          <div class="timer-num" id="timer-num">1:30</div>
+          <div class="timer-sublabel" id="timer-sublabel">tik om te starten</div>
+        </div>
+        <div id="f1-lights" style="display:none;justify-content:center;gap:12px;margin-bottom:12px;">
+          <div id="f1l2" style="width:34px;height:34px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);transition:background .12s,box-shadow .12s;"></div>
+          <div id="f1l1" style="width:34px;height:34px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);transition:background .12s,box-shadow .12s;"></div>
+          <div id="f1l0" style="width:34px;height:34px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);transition:background .12s,box-shadow .12s;"></div>
+        </div>
+        <div onclick="event.stopPropagation()">
+          <button class="tbtn" onclick="timerReset()" style="width:100%;margin-top:4px;">↺ Reset</button>
+        </div>
+      </div>
+
+      <div class="stat-grid" id="stats"></div>
+
+      <div class="sec">Voortgang per week</div>
+      <div class="card" id="week-progress" style="margin-bottom:14px;padding:10px 14px;"></div>
+
+      <div class="sec">Voortgang totaal (10 weken)</div>
+      <div class="card" id="prog-bars-tracker" style="margin-bottom:14px;"></div>
+
+      <div class="sec">Geschiedenis</div>
+      <div class="card" id="hist"></div>
+    </div>
+
+  </div>
+
+  <!-- TAB BAR -->
+  <nav class="tab-bar">
+    <button class="tab-item active" onclick="showTab('schema',this)">
+      <span class="tab-icon">📅</span>Schema
+    </button>
+    <button class="tab-item" onclick="showTab('plan',this)">
+      <span class="tab-icon">📈</span>Plan
+    </button>
+    <button class="tab-item" onclick="showTab('tracker',this)">
+      <span class="tab-icon">✅</span>Tracker
+    </button>
+  </nav>
+</div>
+
+<script>
+const DAYS=['Ma','Di','Wo','Do','Vr','Za','Zo'];
+const TRAIN=[0,2,5];
+const PHASES=[
+  {w:'Wk 1–2',pull:'6–7',dip:'3–4',push:'10–12',focus:'Ritme',d:false},
+  {w:'Wk 3–4',pull:'7–8',dip:'4–5',push:'13–15',focus:'Volume',d:false},
+  {w:'Wk 5',pull:'5–6',dip:'3',push:'8–10',focus:'Deload',d:true},
+  {w:'Wk 6–7',pull:'8–9',dip:'5–6',push:'15–17',focus:'Doorbreken',d:false},
+  {w:'Wk 8–9',pull:'9–10',dip:'7–8',push:'17–20',focus:'Naar doel',d:false},
+  {w:'Wk 10',pull:'10',dip:'8–9',push:'20',focus:'Testweek',d:true},
+];
+
+let counts={pull:0,dip:0,push:0};
+let sessions=[];
+try{
+  const stored=localStorage.getItem('gym-log-v4');
+  if(stored){sessions=JSON.parse(stored);}
+  else{sessions=[{date:'ma 26 mei',week:1,pull:53,dip:26,push:100}];localStorage.setItem('gym-log-v4',JSON.stringify(sessions));}
+}catch(e){}
+
+function showTab(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('content').scrollTop=0;
+}
+
+function buildWeekRow(){
+  const todayIdx=(new Date().getDay()+6)%7;
+  document.getElementById('week-row').innerHTML=DAYS.map((d,i)=>{
+    const tr=TRAIN.includes(i),td=i===todayIdx;
+    return`<div class="dc${tr?' train':''}${td?' today':''}"><div class="dn">${d}</div><div class="dot ${tr?'t':'r'}"></div></div>`;
+  }).join('');
+}
+
+function buildRounds(){
+  document.getElementById('rounds').innerHTML=[1,2,3,4,5,6,7,8].map((n,i)=>`
+    <div class="round-row">
+      <span class="rn">${n}</span>
+      <span class="chip c-pull">6 pull</span>
+      <span class="arr">→</span>
+      ${i<5?`<span class="chip c-dip">3 dip</span><span class="arr">→</span>`:''}
+      <span class="chip c-push">10 push</span>
+    </div>`).join('')+
+    '<div style="font-size:11px;color:var(--text3);margin-top:8px;">Dips in rondes 1–5 (=15 dips), richting 25 als je sterker wordt</div>';
+}
+
+function buildPhases(){
+  document.getElementById('phase-body').innerHTML=PHASES.map(p=>`
+    <tr>
+      <td><span class="pv">${p.w}</span>${p.d?`<span class="db">deload</span>`:''}</td>
+      <td><span class="pv">${p.pull}</span></td>
+      <td><span class="pv">${p.dip}</span></td>
+      <td><span class="pv">${p.push}</span></td>
+      <td><span class="pm">${p.focus}</span></td>
+    </tr>`).join('');
+
+  const bars=[
+    {name:'Pullups',cur:6,goal:10,color:'#3a7fd4'},
+    {name:'Dips',cur:3,goal:9,color:'#4a9456'},
+    {name:'Pushups',cur:10,goal:20,color:'#d97a35'},
+  ];
+  document.getElementById('prog-bars').innerHTML=bars.map(b=>{
+    const pct=Math.round(b.cur/b.goal*100);
+    return`<div class="prog-row"><div class="prog-top"><span class="prog-name">${b.name}</span><span class="prog-nums">${b.cur} → ${b.goal} per set</span></div><div class="prog-bg"><div class="prog-fill" style="width:${pct}%;background:${b.color};"></div></div></div>`;
+  }).join('');
+}
+
+const wkSel=document.getElementById('wk-sel');
+for(let w=1;w<=10;w++){const o=document.createElement('option');o.value=w;o.textContent='Week '+w;wkSel.appendChild(o);}
+if(sessions.length>0)wkSel.value=Math.min(10,sessions[sessions.length-1].week||1);
+
+function ch(ex,d){counts[ex]=Math.max(0,counts[ex]+d);document.getElementById('v-'+ex).textContent=counts[ex];}
+function addS(ex,n){counts[ex]=Math.max(0,counts[ex]+n);document.getElementById('v-'+ex).textContent=counts[ex];}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+function saveSession(){
+  if(!counts.pull&&!counts.dip&&!counts.push){showToast('Voer eerst reps in');return;}
+  const d=new Date().toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'});
+  sessions.push({date:d,week:parseInt(wkSel.value),pull:counts.pull,dip:counts.dip,push:counts.push});
+  try{localStorage.setItem('gym-log-v4',JSON.stringify(sessions));}catch(e){}
+  counts={pull:0,dip:0,push:0};
+  ['pull','dip','push'].forEach(e=>document.getElementById('v-'+e).textContent='0');
+  showToast('Sessie opgeslagen!');
+  renderTracker();
+}
+
+function delSession(i){
+  if(!confirm('Sessie verwijderen?'))return;
+  sessions.splice(i,1);
+  try{localStorage.setItem('gym-log-v4',JSON.stringify(sessions));}catch(e){}
+  renderTracker();
+}
+
+function renderTracker(){
+  const tot=sessions.reduce((a,s)=>({pull:a.pull+s.pull,dip:a.dip+s.dip,push:a.push+s.push,n:a.n+1}),{pull:0,dip:0,push:0,n:0});
+  document.getElementById('stats').innerHTML=`
+    <div class="sc"><div class="sl">Sessies</div><div class="sv">${tot.n}</div><div class="ss">gelogd</div></div>
+    <div class="sc"><div class="sl">Pullups</div><div class="sv">${tot.pull}</div><div class="ss">totaal</div></div>
+    <div class="sc"><div class="sl">Dips</div><div class="sv">${tot.dip}</div><div class="ss">totaal</div></div>
+    <div class="sc"><div class="sl">Pushups</div><div class="sv">${tot.push}</div><div class="ss">totaal</div></div>`;
+
+  // VOORTGANG PER WEEK
+  const byWeek={};
+  sessions.forEach(s=>{
+    const w=s.week||1;
+    if(!byWeek[w])byWeek[w]={pull:0,dip:0,push:0,n:0};
+    byWeek[w].pull+=s.pull;byWeek[w].dip+=s.dip;byWeek[w].push+=s.push;byWeek[w].n++;
+  });
+  const weekEl=document.getElementById('week-progress');
+  if(!Object.keys(byWeek).length){
+    weekEl.innerHTML='<div style="font-size:13px;color:var(--text3);">Nog geen data.</div>';
+  } else {
+    const GOALS={pull:150,dip:75,push:300}; // 3 sessies × doelvolume
+    weekEl.innerHTML=Object.keys(byWeek).sort((a,b)=>b-a).map(w=>{
+      const d=byWeek[w];
+      const bars=['pull','dip','push'].map(ex=>{
+        const colors={pull:'#3a7fd4',dip:'#4a9456',push:'#d97a35'};
+        const pct=Math.min(100,Math.round(d[ex]/GOALS[ex]*100));
+        return`<div class="prog-row" style="margin-bottom:6px;">
+          <div class="prog-top"><span class="prog-name" style="font-size:11px;">${ex.charAt(0).toUpperCase()+ex.slice(1)}</span><span class="prog-nums" style="font-size:11px;">${d[ex]}</span></div>
+          <div class="prog-bg"><div class="prog-fill" style="width:${pct}%;background:${colors[ex]};"></div></div>
+        </div>`;
+      }).join('');
+      return`<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid var(--border);">
+        <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:8px;">Week ${w} <span style="font-size:11px;color:var(--text3);font-weight:400;">${d.n} sessie${d.n!==1?'s':''}</span></div>
+        ${bars}
+      </div>`;
+    }).join('').replace(/border-bottom:0\.5px solid var\(--border\);">\s*<\/div>\s*$/,';">');
+  }
+
+  const goals=[
+    {name:'Pullups',val:tot.pull,goal:30*50,color:'#3a7fd4'},
+    {name:'Dips',val:tot.dip,goal:30*25,color:'#4a9456'},
+    {name:'Pushups',val:tot.push,goal:30*100,color:'#d97a35'}
+  ];
+  document.getElementById('prog-bars-tracker').innerHTML=goals.map(b=>{
+    const pct=Math.min(100,Math.round(b.val/b.goal*100));
+    return`<div class="prog-row"><div class="prog-top"><span class="prog-name">${b.name}</span><span class="prog-nums">${b.val} / ${b.goal}</span></div><div class="prog-bg"><div class="prog-fill" style="width:${pct}%;background:${b.color};"></div></div></div>`;
+  }).join('');
+  const el=document.getElementById('hist');
+  if(!sessions.length){el.innerHTML='<div style="font-size:13px;color:var(--text3);padding:6px 0;">Nog geen sessies gelogd.</div>';return;}
+  el.innerHTML=[...sessions].reverse().map((s,ri)=>{
+    const i=sessions.length-1-ri;
+    return`<div class="hist-item"><div class="hist-top"><div><span class="hist-date">${s.date}</span><span class="hist-wk">Wk ${s.week}</span></div><button class="del-btn" onclick="delSession(${i})" aria-label="Verwijder">🗑</button></div><div class="hist-pills"><span class="pill p-pull">${s.pull} pull</span><span class="pill p-dip">${s.dip} dips</span><span class="pill p-push">${s.push} push</span></div></div>`;
+  }).join('');
+}
+
+// TIMER — 1 klik aan/uit
+const TOTAL=90,CIRC=2*Math.PI*78;
+let timerInterval=null,remaining=TOTAL,timerPhase='idle';
+let f1Active=false,f1Timeout=null;
+const ring=document.getElementById('ring');
+const numEl=document.getElementById('timer-num');
+const sublabelEl=document.getElementById('timer-sublabel');
+const phaseEl=document.getElementById('timer-phase');
+const alertEl=document.getElementById('timer-alert');
+
+function setRing(sec,total,color){
+  ring.style.strokeDashoffset=CIRC*(1-sec/total);
+  ring.style.stroke=color;
+}
+function fmtTime(s){return Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60;}
+
+function setLight(id,on){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.style.background=on?'#cc2200':'var(--bg3)';
+  el.style.boxShadow=on?'0 0 14px 5px rgba(204,34,0,0.65)':'none';
+  el.style.borderColor=on?'#ff4422':'var(--border2)';
+}
+function lightsOff(){['f1l0','f1l1','f1l2'].forEach(id=>setLight(id,false));}
+
+function showF1Lights(){
+  const el=document.getElementById('f1-lights');
+  el.style.display='flex';
+  f1Active=true;
+  lightsOff();
+  const seq=[
+    ()=>setLight('f1l2',true),
+    ()=>setLight('f1l1',true),
+    ()=>setLight('f1l0',true),
+    ()=>{
+      lightsOff();
+      timerPhase='go';
+      f1Active=false;
+      el.style.display='none';
+      updateTimerDisplay();
+    }
+  ];
+  function run(i){if(i>=seq.length)return;seq[i]();f1Timeout=setTimeout(()=>run(i+1),680);}
+  run(0);
+}
+
+function updateTimerDisplay(){
+  const al=document.getElementById('timer-alert');
+  if(timerPhase==='rest'){
+    phaseEl.textContent='Rust — volgende set over '+fmtTime(remaining);
+    sublabelEl.textContent='tik om te stoppen';
+    numEl.textContent=fmtTime(remaining);
+    setRing(remaining,TOTAL,'#3a7fd4');
+    al.className='timer-alert';
+  } else if(timerPhase==='warn30'){
+    phaseEl.textContent='Maak je klaar — 30 seconden!';
+    sublabelEl.textContent='sec tot start';
+    numEl.textContent=remaining;
+    setRing(remaining,30,'#d9873a');
+    al.className='timer-alert warn';
+    al.textContent='30 sec — klaar voor je volgende set!';
+  } else if(timerPhase==='warn10'){
+    phaseEl.textContent='Bijna! 10 seconden!';
+    sublabelEl.textContent='sec tot start';
+    numEl.textContent=remaining;
+    setRing(remaining,10,'#c94a2a');
+    al.className='timer-alert warn';
+    al.textContent='10 seconden — focus!';
+  } else if(timerPhase==='countdown'){
+    phaseEl.textContent='Klaar voor vertrek!';
+    sublabelEl.textContent='';
+    numEl.textContent=remaining>0?remaining:'';
+    setRing(remaining>0?remaining:1,3,'#c94a2a');
+    al.className='timer-alert warn';
+    al.textContent=remaining>0?'Nog '+remaining+'...':'Lichten uit — LOS!';
+  } else if(timerPhase==='go'){
+    phaseEl.textContent='LOS! Begin je set!';
+    sublabelEl.textContent='tik om opnieuw te starten';
+    numEl.textContent='GO';
+    setRing(1,1,'#4a9456');
+    al.className='timer-alert go';
+    al.textContent='Begin je set nu!';
+  } else {
+    phaseEl.textContent='Tik om rust te starten';
+    sublabelEl.textContent='tik om te starten';
+    numEl.textContent='1:30';
+    setRing(1,1,'#3a7fd4');
+    al.className='timer-alert';
+  }
+}
+
+function beep(freq,vol,dur,type='sine'){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.frequency.value=freq;o.type=type;
+    g.gain.setValueAtTime(vol,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
+    o.start();o.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+
+function tick(){
+  remaining--;
+  if(remaining===30&&timerPhase==='rest'){
+    timerPhase='warn30';
+    beep(660,0.18,0.12);setTimeout(()=>beep(660,0.18,0.12),200);
+  }
+  if(remaining===10&&(timerPhase==='warn30'||timerPhase==='rest')){
+    timerPhase='warn10';
+    beep(880,0.55,0.18);
+    setTimeout(()=>beep(880,0.55,0.18),220);
+    setTimeout(()=>beep(880,0.55,0.18),440);
+  }
+  if(remaining===3&&timerPhase!=='countdown'&&timerPhase!=='go'){
+    clearInterval(timerInterval);timerInterval=null;
+    timerPhase='countdown';
+    let c=3;
+    function countStep(){
+      if(c<=0){beep(1200,0.7,0.35,'square');setTimeout(showF1Lights,300);return;}
+      remaining=c;updateTimerDisplay();
+      beep(c===1?1047:880,0.6,0.18,'square');
+      c--;f1Timeout=setTimeout(countStep,900);
+    }
+    countStep();return;
+  }
+  if(remaining<=0&&timerPhase!=='countdown'&&timerPhase!=='go'){
+    clearInterval(timerInterval);timerInterval=null;timerPhase='go';
+  }
+  updateTimerDisplay();
+}
+
+function timerToggle(){
+  if(f1Active)return;
+  // Als GO: reset en start direct opnieuw
+  if(timerPhase==='go'){timerReset();startTimer();return;}
+  // Als lopend: stop
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;timerPhase='idle';remaining=TOTAL;updateTimerDisplay();return;}
+  // Als idle: start
+  startTimer();
+}
+
+function startTimer(){
+  remaining=TOTAL;timerPhase='rest';
+  timerInterval=setInterval(tick,1000);
+  updateTimerDisplay();
+}
+
+function timerReset(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+  if(f1Timeout){clearTimeout(f1Timeout);f1Timeout=null;}
+  lightsOff();f1Active=false;
+  const el=document.getElementById('f1-lights');if(el)el.style.display='none';
+  remaining=TOTAL;timerPhase='idle';
+  updateTimerDisplay();
+}
+
+// Service Worker voor offline gebruik
+if('serviceWorker' in navigator){
+  const sw=`
+    const CACHE='gym-v1';
+    self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./ index.html']))));
+    self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match('./index.html')))));
+  `;
+  const blob=new Blob([sw],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+}
+
+buildWeekRow();
+buildRounds();
+buildPhases();
+renderTracker();
+updateTimerDisplay();
+</script>
+</body>
+</html>
